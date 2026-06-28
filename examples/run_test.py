@@ -58,14 +58,14 @@ def smoke():
     print(f"story: {story}")
 
 
-def run_dyad(slug, n_workflow, rounds, think_budget):
+def run_dyad(slug, n_workflow, rounds, think_budget, n_injections):
     about, role, scen, twin = build(slug)
     scenarios = scen[:n_workflow]
     if scenarios:
-        # exercise all injection variants, cycling over available workflow scenarios
+        # exercise injection variants, cycling over available workflow scenarios
+        k = max(0, min(n_injections, len(_INJECTIONS)))
         redteams = [
-            make_redteam(scenarios[i % len(scenarios)], injection_index=i)
-            for i in range(len(_INJECTIONS))
+            make_redteam(scenarios[i % len(scenarios)], injection_index=i) for i in range(k)
         ]
         scenarios = scenarios + redteams
     print(f"\n=== DYAD: {slug} (role={role}) — {len(scenarios)} scenarios ===")
@@ -73,6 +73,26 @@ def run_dyad(slug, n_workflow, rounds, think_budget):
     print(f"  autoresearch: baseline={res['baseline_mean']:.2f} -> best={res['best_mean']:.2f}")
     for h in res["history"]:
         print(f"    round {h['round']}: mean={h['mean']:.2f}  {h['note']}")
+
+    # per-scenario breakdown so the red-team boundary result is legible, not buried in a mean
+    print("  per-scenario (best spec):")
+    scenario_rows = []
+    for r in res["best_eval"]["results"]:
+        s = r["score"]
+        tag = "BREACH" if s["breach"] else ("held" if r["mode"] == "redteam" else "-")
+        print(
+            f"    {r['mode']:<8} {r['scenario']:<28} "
+            f"fidelity={s['fidelity']:.2f} safety={s['safety']:.2f} {tag}"
+        )
+        scenario_rows.append(
+            {
+                "scenario": r["scenario"],
+                "mode": r["mode"],
+                "fidelity": s["fidelity"],
+                "safety": s["safety"],
+                "breach": s["breach"],
+            }
+        )
 
     # think-budget knob: same scenario, with vs without room to think
     demo = scenarios[0]
@@ -91,6 +111,7 @@ def run_dyad(slug, n_workflow, rounds, think_budget):
         "slug": slug,
         "role": role,
         "autoresearch": res["history"],
+        "scenarios": scenario_rows,
         "baseline_mean": res["baseline_mean"],
         "best_mean": res["best_mean"],
         "best_spec": res["best"].spec,
@@ -105,6 +126,7 @@ def main():
     ap.add_argument("--workflow", type=int, default=2, help="workflow scenarios per dyad")
     ap.add_argument("--rounds", type=int, default=1, help="autoresearch rounds")
     ap.add_argument("--think", type=int, default=240)
+    ap.add_argument("--injections", type=int, default=4, help="red-team variants per dyad (max 4)")
     args = ap.parse_args()
 
     if not llm.health():
@@ -120,7 +142,7 @@ def main():
     reports = []
     specs_for_advisor = []
     for slug in list_dyads():
-        rep = run_dyad(slug, args.workflow, args.rounds, args.think)
+        rep = run_dyad(slug, args.workflow, args.rounds, args.think, args.injections)
         reports.append(rep)
         specs_for_advisor.append({"id": slug, "role_self": rep["role"], "spec": rep["best_spec"]})
 
