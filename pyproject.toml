@@ -1,0 +1,12 @@
+[project]
+name = "metaform"
+version = "0.1.0"
+description = "A humanist world-model / simulator for digital twins. A person is an org of context-scoped selves."
+requires-python = ">=3.9"
+dependencies = []  # stdlib only; model calls go to a local Ollama server over HTTP
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+include = ["metaform*"]

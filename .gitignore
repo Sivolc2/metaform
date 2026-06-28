@@ -1,0 +1,17 @@
+# Personal data — NEVER commit. All imported context lives here.
+/data/
+*.sqlite
+*.db
+.env
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# OS
+.DS_Store
