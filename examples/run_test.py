@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from metaform import llm  # noqa: E402
 from metaform.autoresearch.loop import iterate  # noqa: E402
-from metaform.data.loader import list_dyads, load_scenarios, make_redteam  # noqa: E402
+from metaform.data.loader import _INJECTIONS, list_dyads, load_scenarios, make_redteam  # noqa: E402
 from metaform.eval.judge import score_run  # noqa: E402
 from metaform.eval.story import narrate, stats  # noqa: E402
 from metaform.simulator.engine import run_sim  # noqa: E402
@@ -62,7 +62,12 @@ def run_dyad(slug, n_workflow, rounds, think_budget):
     about, role, scen, twin = build(slug)
     scenarios = scen[:n_workflow]
     if scenarios:
-        scenarios = scenarios + [make_redteam(scenarios[0])]
+        # exercise all injection variants, cycling over available workflow scenarios
+        redteams = [
+            make_redteam(scenarios[i % len(scenarios)], injection_index=i)
+            for i in range(len(_INJECTIONS))
+        ]
+        scenarios = scenarios + redteams
     print(f"\n=== DYAD: {slug} (role={role}) — {len(scenarios)} scenarios ===")
     res = iterate(twin, scenarios, rounds=rounds, think_budget=think_budget)
     print(f"  autoresearch: baseline={res['baseline_mean']:.2f} -> best={res['best_mean']:.2f}")
