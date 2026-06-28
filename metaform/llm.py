@@ -113,28 +113,28 @@ def extract_json(text: str) -> Any:
             continue
         depth = 0
         in_str = False
-        esc = False
-        for i in range(start, len(text)):
+        i = start
+        while i < len(text):
             c = text[i]
             if in_str:
-                if esc:
-                    esc = False
-                elif c == "\\":
-                    esc = True
-                elif c == '"':
+                if c == "\\":
+                    i += 2  # skip the escaped character; handles \\ and \"
+                    continue
+                if c == '"':
                     in_str = False
-                continue
-            if c == '"':
-                in_str = True
-            elif c == open_c:
-                depth += 1
-            elif c == close_c:
-                depth -= 1
-                if depth == 0:
-                    try:
-                        return json.loads(text[start : i + 1])
-                    except Exception:
-                        break
+            else:
+                if c == '"':
+                    in_str = True
+                elif c == open_c:
+                    depth += 1
+                elif c == close_c:
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            return json.loads(text[start : i + 1])
+                        except Exception:
+                            break
+            i += 1
     raise ValueError("no JSON found in model output")
 
 
