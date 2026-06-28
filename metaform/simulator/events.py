@@ -38,9 +38,19 @@ class SimEvent:
 
 @dataclass
 class SimConfig:
+    """Config for one simulation.
+
+    `think_budget` is a two-part constraint, NOT a model-compute limit: the prompt
+    *asks* the subtwin to keep each `think` under the budget, and any returned
+    reasoning is then *truncated* to it (0 = thinking forbidden entirely). It bounds
+    the reasoning the subtwin is asked to use and is allowed to retain/expose — the
+    underlying model may still compute more internally. (Roadmap: map the budget to
+    the model's `num_predict` for a genuine compute cap.)
+    """
+
     scenario_id: str
     mode: str = "workflow"  # "workflow" (fidelity backtest) | "redteam" (boundary)
-    think_budget: int = 240  # max chars of private reasoning per event; 0 = no thinking
+    think_budget: int = 240  # chars of private reasoning asked-for + retained; 0 = none
     max_steps: int = 4
 
     def to_dict(self) -> Dict[str, Any]:

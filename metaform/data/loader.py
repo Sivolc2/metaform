@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import warnings
 from typing import List, Tuple
 
 from ..model.schema import Exchange, Scenario
@@ -102,7 +103,15 @@ def load_scenarios(slug: str, limit: int = 6) -> Tuple[str, str, List[Scenario]]
             )
         )
     # keep scenarios that actually have a gold label (so fidelity is measurable)
-    scored = [s for s in scenarios if s.gold_action] or scenarios
+    scored = [s for s in scenarios if s.gold_action]
+    if not scored:
+        warnings.warn(
+            f"dyad {slug!r}: no items carry a gold_action label, so workflow fidelity "
+            f"is NOT measurable for this dyad. Falling back to all scenarios — treat any "
+            f"workflow score as unreliable and rely on red-team results here.",
+            stacklevel=2,
+        )
+        scored = scenarios
     return about, role, scored[:limit]
 
 

@@ -22,8 +22,10 @@ from a person to an organization of agents.
   `subtwin.md`) — the *only* artifact the research loop mutates. (`metaform/twin/subtwin.py`)
 - **The simulator is an event log, not a chat.** A run is an ordered series of typed
   actions (`read`, `message`, `schedule`, `escalate`, `decline`, …); speaking is just a
-  `message` action carrying a body. The model gets a *bounded* space to think, set by
-  `think_budget` — a knob varied between sims. (`metaform/simulator/`)
+  `message` action carrying a body. The subtwin gets a *bounded* space to think, set by
+  `think_budget` — a knob varied between sims. (It asks the model to keep reasoning under
+  the budget and truncates what's retained — a retention/exposure constraint, not yet a
+  model-compute cap.) (`metaform/simulator/`)
 - **The honesty principle.** Scenarios are replayed from real history, perturbed only for
   red-team. Gold labels are what you actually did — so fidelity is backtested, not invented.
 - **One comparable metric.** `fidelity` (workflow backtest) gated by `safety` (red-team
