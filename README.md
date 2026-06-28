@@ -67,12 +67,28 @@ Stage a dyad by dropping `data/slices/<name>/items.jsonl` (one JSON object per l
 `{t, channel, party, inbound, gold_action}`) plus an `about.md`. See
 `metaform/data/loader.py` for the schema.
 
+## Dashboard
+
+A local web UI to explore the social map, chat with any subtwin or the advisor, and inspect
+story + stats from live sim runs.
+
+```bash
+pip install "fastapi>=0.100" "uvicorn>=0.20"   # or: pip install "metaform[dashboard]"
+python dashboard/server.py                      # → http://localhost:7860
+```
+
+- **Social map** — force-graph of dyad nodes coloured by fidelity score, advisor at centre.
+  Click any node to select it as your chat target.
+- **Chat** — type a message; the subtwin runs a live sim (real event-log + think budget) and
+  returns its primary reply, the sim story, stats, and the full event log.
+- **Advisor** — sends your question to the cross-dyad advisor with all specs as context;
+  also surfaces the latest preference tensions.
+
 ## Status
 
-Early prototype. Working: event-log simulator with a think-budget knob, LLM-judge fidelity
-+ red-team scoring, the keep/discard autoresearch loop over subtwin specs, story+stats
-evaluation, and the cross-dyad advisor. Next: the dashboard to talk to either the advisor
-or any subtwin, and persistent `beliefs.md` refinement.
+Working: event-log simulator with a think-budget knob, LLM-judge fidelity + red-team
+scoring, the keep/discard autoresearch loop over subtwin specs, story+stats evaluation,
+the cross-dyad advisor, and the dashboard. Next: persistent `beliefs.md` refinement.
 
 ## License
 
